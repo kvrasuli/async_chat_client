@@ -1,4 +1,6 @@
 import asyncio
+import aiofiles
+import datetime
 
 
 async def tcp_echo_client():
@@ -6,8 +8,10 @@ async def tcp_echo_client():
         'minechat.dvmn.org', 5000
     )
     while True:
-        data = await reader.readline()
-        print(f'Received: {data.decode()}')
+        chat_line = await reader.readline()
+        timestamp = datetime.datetime.now().strftime('%d.%m.%y %H:%M:%S')
+        async with aiofiles.open('chathistory.txt', 'a') as file:
+            await file.write(f'[{timestamp}] {chat_line.decode()}')
 
 
 asyncio.run(tcp_echo_client())
