@@ -1,0 +1,27 @@
+import asyncio
+import configargparse
+from dotenv import load_dotenv
+
+
+async def write_message_to_chat(host, port, token, message):
+    reader, writer = await asyncio.open_connection(host, port)
+    writer.write(f"{token}\n".encode())
+    writer.write(f'{message}\n\n'.encode())
+    writer.close()
+
+
+def parse_args():
+    load_dotenv()
+    parser = configargparse.ArgParser()
+    parser.add('--host', help='address of host', env_var='CHAT_HOST')
+    parser.add('--port', help='number of port', env_var='CHAT_PORT_TO_WRITE')
+    parser.add('--token', help='chat token', env_var='CHAT_TOKEN')
+    parser.add('-m', '--message', help='message to send', required=True)
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    asyncio.run(
+        write_message_to_chat(args.host, args.port, args.token, args.message)
+    )
