@@ -18,7 +18,7 @@ def parse_args():
     load_dotenv()
     parser = configargparse.ArgParser()
     parser.add('--host', help='address of host', env_var='CHAT_HOST')
-    parser.add('--port', help='number of port', env_var='CHAT_PORT')
+    parser.add('--port', help='number of port', env_var='CHAT_PORT_TO_READ')
     parser.add(
         '--path', help='path to chat history file',
         env_var='CHAT_HISTORY_FILE_PATH'
