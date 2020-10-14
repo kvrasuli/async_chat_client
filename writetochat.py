@@ -8,33 +8,52 @@ logger = logging.getLogger(__file__)
 
 
 async def write_message_to_chat(host, port, token, message, nickname):
-    global logger
+    if token:
+        reader, writer = await authorize(host, port, token)
+    else:
+        token = await register(host, port, nickname)
+        reader, writer = await authorize(host, port, token)
+    await submit_message(reader, writer, message)
+
+
+async def register(host, port, nickname):
     reader, writer = await asyncio.open_connection(host, port)
     answer = await reader.readline()
     logger.debug(answer.decode())
-    if token:
-        writer.write(f'{token}\n'.encode())
-        logger.debug(f'{token} has been sent!')
-        answer = await reader.readline()
-        decoded_answer = json.loads(answer.decode())
-        if not decoded_answer:
-            logger.debug('The token isn\'t valid, check it or register again.')
-            return
-    else:
-        writer.write('\n'.encode())
-        logger.debug('Registering a new token...')
-        answer = await reader.readline()
-        logger.debug(answer.decode())
-        writer.write(f'{nickname}\n\n'.encode())
-        answer = await reader.readline()
-        logger.debug(answer.decode())
-        decoded_answer = json.loads(answer.decode())
-        token = decoded_answer['account_hash']
+    writer.write('\n'.encode())
+    logger.debug('Registering a new token...')
+    answer = await reader.readline()
+    logger.debug(answer.decode())
+    writer.write(f'{nickname}\n'.encode())
+    answer = await reader.readline()
+    logger.debug(answer.decode())
+    decoded_answer = json.loads(answer.decode())
+    writer.close()
+    return decoded_answer['account_hash']
+
+
+async def authorize(host, port, token):
+    reader, writer = await asyncio.open_connection(host, port)
+    answer = await reader.readline()
+    logger.debug(answer.decode())
+    writer.write(f'{token}\n'.encode())
+    logger.debug(f'{token} has been sent!')
+    answer = await reader.readline()
+    logger.debug(answer.decode())
+    decoded_answer = json.loads(answer.decode())
+    if not decoded_answer:
+        logger.debug('The token isn\'t valid, check it or register again.')
+        return
+    return reader, writer
+
+
+async def submit_message(reader, writer, message):
+    answer = await reader.readline()
+    logger.debug(answer.decode())
     writer.write(f'{message}\n\n'.encode())
     logger.debug(f'Sending a message {message}...')
     answer = await reader.readline()
     logger.debug(answer.decode())
-    writer.close()
 
 
 def parse_args():
