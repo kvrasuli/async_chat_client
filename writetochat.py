@@ -24,6 +24,7 @@ async def register(host, port, nickname):
     logger.debug('Registering a new token...')
     answer = await reader.readline()
     logger.debug(answer.decode())
+    nickname = nickname.replace('\n', '')
     writer.write(f'{nickname}\n'.encode())
     answer = await reader.readline()
     logger.debug(answer.decode())
@@ -50,6 +51,7 @@ async def authorize(host, port, token):
 async def submit_message(reader, writer, message):
     answer = await reader.readline()
     logger.debug(answer.decode())
+    message = message.replace('\n', '')
     writer.write(f'{message}\n\n'.encode())
     logger.debug(f'Sending a message {message}...')
     answer = await reader.readline()
