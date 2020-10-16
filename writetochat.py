@@ -66,13 +66,17 @@ def parse_args():
     parser.add('--token', help='chat token', env_var='CHAT_TOKEN')
     parser.add('--nickname', help='your nickname', env_var='CHAT_NICKNAME')
     parser.add('-m', '--message', help='message to send', required=True)
+    parser.add('--log', help='enable logs', action='store_true')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format="%(levelname)s sender: %(message)s")
-    logger.setLevel(logging.DEBUG)
     args = parse_args()
+    if args.log:
+        logging.basicConfig(
+            format="%(levelname)s sender: %(message)s",
+            level=logging.DEBUG
+        )
     asyncio.run(
         write_message_to_chat(args.host, args.port, args.token, args.message, args.nickname)
     )

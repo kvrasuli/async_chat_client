@@ -50,6 +50,10 @@ pip3 install -r requirements.txt
     -m [message]
     --message [message]
     ```
+    To enable logs use:
+    ```
+    --log
+    ```
 - Run the python script:
     ```
     python3 writetochat.py [optional arguments] -m [message]
