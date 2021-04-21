@@ -17,7 +17,7 @@ async def get_messages_from_chat(host, port, path):
             logger.error('Reading error!')
             await asyncio.sleep(10)
         timestamp = datetime.datetime.now().strftime('%d.%m.%y %H:%M:%S')
-        async with aiofiles.open(path, 'a') as file:
+        async with aiofiles.open(path, 'a', encoding='utf-8') as file:
             await file.write(f'[{timestamp}] {chat_line.decode()}')
 
 
