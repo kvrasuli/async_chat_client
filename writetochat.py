@@ -7,13 +7,23 @@ import json
 logger = logging.getLogger(__file__)
 
 
+async def open_socket(host, port):
+    reader, writer = await asyncio.open_connection(host, port)
+    answer = await reader.readline()
+    logger.debug(answer.decode())
+    return reader, writer
+
+
 async def write_message_to_chat(host, port, token, message, nickname):
+    reader, writer = await open_socket(host, port)
     if token:
-        reader, writer = await authorize(host, port, token)
+        error = await authorize(reader, writer, token)
     else:
-        token = await register(host, port, nickname)
-        reader, writer = await authorize(host, port, token)
-    await submit_message(reader, writer, message)
+        token = await register(reader, writer, nickname)
+        error = await authorize(reader, writer, token)
+    if not error:
+        await submit_message(reader, writer, message)
+    writer.close()
 
 
 async def register(host, port, nickname):
