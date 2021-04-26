@@ -89,11 +89,10 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
+    logging.basicConfig(format="%(levelname)s sender: %(message)s", level=logging.ERROR)
     if args.log:
-        logging.basicConfig(
-            format="%(levelname)s sender: %(message)s",
-            level=logging.DEBUG
-        )
+        logging.basicConfig(level=logging.DEBUG)
+
     asyncio.run(
         write_message_to_chat(args.host, args.port, args.token, args.message, args.nickname)
     )
