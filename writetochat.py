@@ -23,6 +23,7 @@ async def write_message_to_chat(host, port, token, message, nickname):
         error = await authorize(reader, writer, token)
     if not error:
         await submit_message(reader, writer, message)
+    await writer.drain()
     writer.close()
 
 
