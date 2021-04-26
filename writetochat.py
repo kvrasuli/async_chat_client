@@ -16,6 +16,8 @@ async def open_socket(host, port):
         answer = await reader.readline()
         logger.debug(answer.decode())
         yield reader, writer
+    except ConnectionError:
+        logger.error('Writing error!')
     finally:
         writer.close()
         await writer.wait_closed()
