@@ -26,10 +26,7 @@ async def write_message_to_chat(host, port, token, message, nickname):
     writer.close()
 
 
-async def register(host, port, nickname):
-    reader, writer = await asyncio.open_connection(host, port)
-    answer = await reader.readline()
-    logger.debug(answer.decode())
+async def register(reader, writer, nickname):  
     writer.write('\n'.encode())
     logger.debug('Registering a new token...')
     answer = await reader.readline()
@@ -39,28 +36,25 @@ async def register(host, port, nickname):
     answer = await reader.readline()
     logger.debug(answer.decode())
     decoded_answer = json.loads(answer.decode())
-    writer.close()
     return decoded_answer['account_hash']
 
 
-async def authorize(host, port, token):
-    reader, writer = await asyncio.open_connection(host, port)
-    answer = await reader.readline()
-    logger.debug(answer.decode())
+async def authorize(reader, writer, token):
     writer.write(f'{token}\n'.encode())
     logger.debug(f'{token} has been sent!')
     answer = await reader.readline()
-    logger.debug(answer.decode())
-    decoded_answer = json.loads(answer.decode())
-    if not decoded_answer:
+    decoded_answer = answer.decode()
+    logger.debug(f'{decoded_answer}')
+    if decoded_answer.startswith('Welcome'):
+        return False
+    elif decoded_answer == 'null\n':
         logger.debug('The token isn\'t valid, check it or register again.')
-        return
-    return reader, writer
-
+        return True
+    answer = await reader.readline()
+    logger.debug(f'{answer.decode()}')
+    return False
 
 async def submit_message(reader, writer, message):
-    answer = await reader.readline()
-    logger.debug(answer.decode())
     message = message.replace('\n', '')
     writer.write(f'{message}\n\n'.encode())
     logger.debug(f'Sending a message {message}...')
