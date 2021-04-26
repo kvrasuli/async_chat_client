@@ -1,30 +1,38 @@
 import asyncio
+from asyncio.events import set_child_watcher
 import configargparse
 from dotenv import load_dotenv
 import logging
 import json
+from contextlib import asynccontextmanager
 
 logger = logging.getLogger(__file__)
 
 
+@asynccontextmanager
 async def open_socket(host, port):
-    reader, writer = await asyncio.open_connection(host, port)
-    answer = await reader.readline()
-    logger.debug(answer.decode())
-    return reader, writer
+    try:
+        print('------------------->')
+        reader, writer = await asyncio.open_connection(host, port)
+        answer = await reader.readline()
+        logger.debug(answer.decode())
+        yield reader, writer
+    finally:
+        writer.close()
+        await writer.wait_closed()
 
 
 async def write_message_to_chat(host, port, token, message, nickname):
-    reader, writer = await open_socket(host, port)
-    if token:
-        error = await authorize(reader, writer, token)
-    else:
-        token = await register(reader, writer, nickname)
-        error = await authorize(reader, writer, token)
-    if not error:
-        await submit_message(reader, writer, message)
-    await writer.drain()
-    writer.close()
+    async with open_socket(host, port) as stream:
+        reader, writer = stream[0], stream[1]
+        if token:
+            error = await authorize(reader, writer, token)
+        else:
+            token = await register(reader, writer, nickname)
+            error = await authorize(reader, writer, token)
+        if not error:
+            await submit_message(reader, writer, message)
+        await writer.drain()
 
 
 async def register(reader, writer, nickname):  
