@@ -12,7 +12,6 @@ logger = logging.getLogger(__file__)
 @asynccontextmanager
 async def open_socket(host, port):
     try:
-        print('------------------->')
         reader, writer = await asyncio.open_connection(host, port)
         answer = await reader.readline()
         logger.debug(answer.decode())
@@ -32,16 +31,17 @@ async def write_message_to_chat(host, port, token, message, nickname):
             error = await authorize(reader, writer, token)
         if not error:
             await submit_message(reader, writer, message)
-        await writer.drain()
 
 
 async def register(reader, writer, nickname):  
     writer.write('\n'.encode())
+    await writer.drain()
     logger.debug('Registering a new token...')
     answer = await reader.readline()
     logger.debug(answer.decode())
     nickname = nickname.replace('\n', '')
     writer.write(f'{nickname}\n'.encode())
+    await writer.drain()
     answer = await reader.readline()
     logger.debug(answer.decode())
     decoded_answer = json.loads(answer.decode())
@@ -50,6 +50,7 @@ async def register(reader, writer, nickname):
 
 async def authorize(reader, writer, token):
     writer.write(f'{token}\n'.encode())
+    await writer.drain()
     logger.debug(f'{token} has been sent!')
     answer = await reader.readline()
     decoded_answer = answer.decode()
@@ -66,6 +67,7 @@ async def authorize(reader, writer, token):
 async def submit_message(reader, writer, message):
     message = message.replace('\n', '')
     writer.write(f'{message}\n\n'.encode())
+    await writer.drain()
     logger.debug(f'Sending a message {message}...')
     answer = await reader.readline()
     logger.debug(answer.decode())
